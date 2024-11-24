@@ -84,12 +84,11 @@ public struct ClassDescriptor: TypeContextDescriptor, LayoutWrapper {
     // just unbind a type from memory without deinitializing it as well (which
     // we don't want to do).
     let atomicIntPtr = resilientBounds.ptr.mutable.bindMemory(
-      to: Int.AtomicRepresentation.self,
+      to: UnsafeAtomic<Int>.self,
       capacity: 1
     )
     
-    let immediateMembersOffset = Int.AtomicRepresentation.atomicLoad(
-      at: atomicIntPtr,
+    let immediateMembersOffset = atomicIntPtr.pointee.load(
       ordering: .sequentiallyConsistent
     )
     
@@ -378,10 +377,9 @@ public struct ClassDescriptor: TypeContextDescriptor, LayoutWrapper {
     bounds.pointee._bounds._positiveSize = UInt32(positiveSize)
     bounds.pointee._bounds._negativeSize = UInt32(negativeSize)
     
-    bounds.withMemoryRebound(to: Int.AtomicRepresentation.self, capacity: 1) {
-      Int.AtomicRepresentation.atomicStore(
+    bounds.withMemoryRebound(to: UnsafeAtomic<Int>.self, capacity: 1) {
+      $0.pointee.store(
         immediateMemberOffset,
-        at: $0,
         ordering: .releasing
       )
     }
@@ -491,7 +489,7 @@ struct _ClassDescriptor {
 }
 
 struct _StoredClassMetadataBounds {
-  var _immediateMembersOffset: Int.AtomicRepresentation
+  var _immediateMembersOffset: UnsafeAtomic<Int>
   var _bounds: MetadataBounds
 }
 
@@ -501,10 +499,7 @@ struct StoredClassMetadataBounds: LayoutWrapper {
   let ptr: UnsafeRawPointer
   
   var immediateMembersOffset: Int {
-    Int.AtomicRepresentation.atomicLoad(
-      at: ptr.mutable.bindMemory(to: Int.AtomicRepresentation.self, capacity: 1),
-      ordering: .relaxed
-    )
+    ptr.mutable.bindMemory(to: UnsafeAtomic<Int>.self, capacity: 1).pointee.load(ordering: .relaxed)
   }
 }
 

@@ -1,4 +1,4 @@
-// swift-tools-version:5.1
+// swift-tools-version:5.10
 
 import PackageDescription
 
@@ -11,7 +11,7 @@ let package = Package(
     )
   ],
   dependencies: [
-    .package(url: "https://github.com/apple/swift-atomics.git", from: "1.2.0")
+    .package(url: "https://github.com/apple/swift-atomics.git", from: "1.0.0")
   ],
   targets: [
     .target(
@@ -20,7 +20,7 @@ let package = Package(
     ),
     .target(
       name: "Echo",
-      dependencies: ["CEcho", "Atomics"]
+      dependencies: ["CEcho", .product(name: "Atomics", package: "swift-atomics")]
     ),
     .testTarget(
       name: "EchoTests",
